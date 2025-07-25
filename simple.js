@@ -200,16 +200,25 @@ document.addEventListener("DOMContentLoaded", function () {
     // end product
   ];
 
-  let index = 0;
+let index = 0;
 const image = document.getElementById('thumb-image');
 const link = document.getElementById('thumb-link');
 const container = document.getElementById('affiliate-widget-thumb');
 
+// Shuffle array once
+function shuffleArray(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+shuffleArray(products);
+
 function showNext() {
-  const randomIndex = Math.floor(Math.random() * products.length);
-  const p = products[randomIndex];
+  const p = products[index];
   image.src = p.image;
   link.href = p.link;
+  index = (index + 1) % products.length;
 }
 
 showNext();
