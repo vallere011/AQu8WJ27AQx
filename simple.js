@@ -201,23 +201,22 @@ document.addEventListener("DOMContentLoaded", function () {
   ];
 
   let index = 0;
-  const image = document.getElementById('thumb-image');
-  const link = document.getElementById('thumb-link');
-  const container = document.getElementById('affiliate-widget-thumb');
+const image = document.getElementById('thumb-image');
+const link = document.getElementById('thumb-link');
+const container = document.getElementById('affiliate-widget-thumb');
 
-  function showNext() {
-    const p = products[index];
-    image.src = p.image;
-    link.href = p.link;
-    index = (index + 1) % products.length;
-  }
+function showNext() {
+  const randomIndex = Math.floor(Math.random() * products.length);
+  const p = products[randomIndex];
+  image.src = p.image;
+  link.href = p.link;
+}
 
-  showNext();
-  let interval = setInterval(showNext, 5000);
+showNext();
+let interval = setInterval(showNext, 5000);
 
-  // Pause/resume on hover
-  container.addEventListener('mouseenter', () => clearInterval(interval));
-  container.addEventListener('mouseleave', () => {
-    interval = setInterval(showNext, 4000);
-  });
+// Pause/resume on hover
+container.addEventListener('mouseenter', () => clearInterval(interval));
+container.addEventListener('mouseleave', () => {
+  interval = setInterval(showNext, 4000);
 });
