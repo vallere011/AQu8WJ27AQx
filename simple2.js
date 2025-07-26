@@ -1,8 +1,10 @@
-// promo-widget.js
+// simple2.js - Simple Ad Rotator Widget
+// Upload file ini ke GitHub dan panggil dari WordPress
 
 document.addEventListener("DOMContentLoaded", function () {
-  // 1. Definisikan array 'products' di sini (pastikan ini adalah array yang ingin Anda acak)
-  const products = [
+    // Array produk iklan - edit sesuai kebutuhan
+    const products = [
+{ image: "https://down-id.img.susercontent.com/file/id-11134207-7rase-m3thqomviw9gef.webp", link: "https://s.shopee.co.id/2LNcY44wgJ" },
 { image: "https://down-id.img.susercontent.com/file/id-11134207-7ra0h-mc56q55c0m6451.webp", link: "https://s.shopee.co.id/BJ7y5DC4u" },
 { image: "https://down-id.img.susercontent.com/file/id-11134207-7r98x-lvwnlvnmblikdf.webp", link: "https://s.shopee.co.id/zhlmDpPt" },
 { image: "https://down-id.img.susercontent.com/file/id-11134207-7ra0r-mc1r4jy60f2147.webp", link: "https://s.shopee.co.id/VvyMhBvP0" },
@@ -34,55 +36,207 @@ document.addEventListener("DOMContentLoaded", function () {
 { image: "https://down-id.img.susercontent.com/file/id-11134211-7r98x-ls0opd0p1pllff@resize_w640_nl.webp", link: "https://s.shopee.co.id/6AaL76qLue" },
 { image: "https://down-id.img.susercontent.com/file/eedd3797cebf1f12c77d8380e4844150@resize_w640_nl.webp", link: "https://s.shopee.co.id/60GuunqzFd" },
 { image: "https://down-id.img.susercontent.com/file/id-11134207-7qul4-li71cgcrtzak66.webp", link: "https://s.shopee.co.id/6VDBVip5Ek" },
-{ image: "https://down-id.img.susercontent.com/file/id-11134207-7rbk2-mag17gdoyw4eda@resize_w640_nl.webp", link: "https://s.shopee.co.id/6KtlJPpiZj" }
-  ];
+{ image: "https://down-id.img.susercontent.com/file/id-11134207-7rbk2-mag17gdoyw4eda@resize_w640_nl.webp", link: "https://s.shopee.co.id/6KtlJPpiZj" },
+        // Tambahkan produk lain di sini
+    ];
 
-  // 2. Deklarasikan variabel dan elemen DOM
-  let index = 0;
-  const image = document.getElementById('thumb-image');
-  const link = document.getElementById('thumb-link');
-  const container = document.getElementById('affiliate-widget-thumb');
+    let currentIndex = 0;
+    let shuffledProducts = [];
 
-  // 3. Fungsi untuk mengacak (shuffle) array
-  function shuffleArray(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]]; // ES6 destructuring swap
+    // Fungsi untuk mengacak array (Fisher-Yates shuffle)
+    function shuffleArray(array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
     }
-  }
 
-  // 4. Lakukan pengacakan pada array 'products' **setelah didefinisikan**
-  shuffleArray(products);
+    // Inisialisasi widget
+    function initAdRotator() {
+        // Cari container dengan class 'simple-ad-rotator'
+        const container = document.querySelector('.simple-ad-rotator');
+        if (!container) {
+            console.error('Container .simple-ad-rotator tidak ditemukan');
+            return;
+        }
 
-  // 5. Fungsi untuk menampilkan gambar dan link produk berikutnya
-  function showNext() {
-    // Pastikan elemen ditemukan sebelum mencoba mengakses propertinya
-    if (image && link) {
-      const p = products[index];
-      image.src = p.image;
-      link.href = p.link;
-      index = (index + 1) % products.length; // Lanjut ke indeks berikutnya, kembali ke 0 jika sudah di akhir
-    } else {
-        console.error("Elemen 'thumb-image' atau 'thumb-link' tidak ditemukan. Pastikan ID HTML sudah benar.");
-        clearInterval(interval); // Hentikan interval jika elemen tidak ditemukan
+        // Acak urutan produk
+        shuffledProducts = shuffleArray(products);
+
+        // Inject CSS
+        injectCSS();
+
+        // Generate HTML
+        generateHTML(container);
+
+        // Mulai rotasi
+        startRotation();
     }
-  }
 
-  // 6. Tampilkan gambar pertama (setelah di-shuffle) segera
-  showNext();
+    // Inject CSS styles
+    function injectCSS() {
+        const css = `
+        .simple-ad-rotator {
+            position: relative;
+            width: 100%;
+            max-width: 300px;
+            height: 250px;
+            margin: 10px auto;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: #f9f9f9;
+        }
+        
+        .ad-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        
+        .ad-slide.active {
+            opacity: 1;
+        }
+        
+        .ad-slide img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 6px;
+            transition: transform 0.3s ease;
+        }
+        
+        .ad-slide:hover img {
+            transform: scale(1.02);
+        }
+        
+        .ad-slide a {
+            display: block;
+            text-decoration: none;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Loading indicator */
+        .ad-slide img[data-loading="true"] {
+            opacity: 0.5;
+        }
+        
+        /* Fade animation untuk smooth transition */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .simple-ad-rotator::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 4px;
+            height: 4px;
+            background: #007cba;
+            border-radius: 50%;
+            opacity: 0.7;
+            z-index: 10;
+        }
+        `;
 
-  // 7. Atur interval untuk mengganti gambar setiap 5 detik
-  let interval = setInterval(showNext, 5000);
+        // Cek apakah CSS sudah di-inject
+        if (!document.querySelector('#simple-ad-rotator-css')) {
+            const style = document.createElement('style');
+            style.id = 'simple-ad-rotator-css';
+            style.textContent = css;
+            document.head.appendChild(style);
+        }
+    }
 
-  // 8. Jeda otomatis saat kursor di atas container
-  if (container) {
-    container.addEventListener('mouseenter', () => clearInterval(interval));
+    // Generate HTML untuk slides
+    function generateHTML(container) {
+        container.innerHTML = '';
+        
+        shuffledProducts.forEach((product, index) => {
+            const slide = document.createElement('div');
+            slide.className = 'ad-slide';
+            if (index === 0) slide.classList.add('active');
+            
+            slide.innerHTML = `
+                <a href="${product.link}" target="_blank" rel="nofollow noopener">
+                    <img src="${product.image}" 
+                         alt="Produk ${index + 1}" 
+                         loading="lazy"
+                         onerror="this.style.display='none'"
+                         onload="this.removeAttribute('data-loading')"
+                         data-loading="true">
+                </a>
+            `;
+            
+            container.appendChild(slide);
+        });
+    }
 
-    // 9. Lanjutkan otomatis saat kursor meninggalkan container, dengan interval 4 detik
-    container.addEventListener('mouseleave', () => {
-      interval = setInterval(showNext, 4000);
-    });
-  } else {
-    console.warn("Elemen 'affiliate-widget-thumb' tidak ditemukan. Fitur jeda/lanjut saat hover tidak akan berfungsi.");
-  }
+    // Tampilkan slide berdasarkan index
+    function showSlide(index) {
+        const slides = document.querySelectorAll('.simple-ad-rotator .ad-slide');
+        
+        slides.forEach((slide, i) => {
+            slide.classList.remove('active');
+            if (i === index) {
+                slide.classList.add('active');
+            }
+        });
+        
+        currentIndex = index;
+    }
+
+    // Mulai rotasi otomatis
+    function startRotation() {
+        setInterval(() => {
+            const nextIndex = (currentIndex + 1) % shuffledProducts.length;
+            showSlide(nextIndex);
+            
+            // Re-shuffle setiap siklus lengkap untuk keadilan
+            if (nextIndex === 0) {
+                setTimeout(() => {
+                    reshuffleAds();
+                }, 1000);
+            }
+        }, 4500); // 4.5 detik per slide
+    }
+
+    // Acak ulang urutan ads
+    function reshuffleAds() {
+        const container = document.querySelector('.simple-ad-rotator');
+        if (container) {
+            shuffledProducts = shuffleArray(products);
+            generateHTML(container);
+            currentIndex = 0;
+        }
+    }
+
+    // Jalankan inisialisasi
+    initAdRotator();
+
+    // Re-shuffle random setiap 45 detik untuk keadilan ekstra
+    setInterval(() => {
+        if (Math.random() < 0.4) { // 40% kemungkinan
+            reshuffleAds();
+        }
+    }, 45000);
 });
